@@ -6,7 +6,7 @@ This suite replaces manual, repetitive workflows across Product, Finance, HR, an
 
 ## 📂 Project Overview
 
-This repository includes four major automation systems:
+This repository includes four major automation systems till now and will be adding more:
 
 ## 1️⃣ Automated Requirement → Jira Pipeline
 📌 Purpose:
@@ -81,7 +81,7 @@ Auto-sends emails based on status:
 
 An AI-powered ATS-like workflow that handles end-to-end candidate processing.
 
-## 4️⃣ Automated Financial Analysis (Vaamoz)
+## 4️⃣ Automated Financial Analysis
 📌 Purpose:
 
 Enable AI-driven financial insights for business decision-making.
@@ -137,6 +137,7 @@ Notification (emails or logs)
 ## 📜 Why This Repository Exists
 
 This repo demonstrates how businesses can automate entire departments using AI agents and no-code orchestration — reducing manual work by 70–90%, improving accuracy, and accelerating decision-making.
+
 
 
 ## 🎉 More projects loading… 🚀
