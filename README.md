@@ -138,6 +138,7 @@ Notification (emails or logs)
 
 This repo demonstrates how businesses can automate entire departments using AI agents and no-code orchestration — reducing manual work by 70–90%, improving accuracy, and accelerating decision-making.
 
-🎉 More projects loading… 🚀
+
+## 🎉 More projects loading… 🚀
 
 Stay tuned — new AI-driven automations will be added soon!
