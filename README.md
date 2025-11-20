@@ -8,7 +8,7 @@ This suite replaces manual, repetitive workflows across Product, Finance, HR, an
 
 This repository includes four major automation systems till now and will be adding more:
 
-## 1️⃣ Automated Requirement → Jira Pipeline
+## 1️⃣ Automated Business Analyst → Jira Pipeline
 📌 Purpose:
 
 Transform product requirement PDFs into fully prepared Jira tickets with User Stories, ACs, technical solutions, and priorities — without any manual effort.
