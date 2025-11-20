@@ -1,0 +1,981 @@
+{
+  "name": "Financial analysis",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        240
+      ],
+      "id": "ebef36f8-5c48-445f-a3f1-a37254adb740",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4",
+          "mode": "list",
+          "cachedResultName": "financial analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "churn_prediction",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        48,
+        -176
+      ],
+      "id": "072b9af7-2082-47be-8f85-bde7c5b7c55c",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-09-2025",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -48
+      ],
+      "id": "93b6f29e-7a5c-4494-9014-3e0f8387e2dd",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kytOQtY5jjTHXqvJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"churn_probability_percent\": 78,\n  \"risk_level\": \"High\",\n  \"main_reason\": \"User has not logged in for several weeks and has redeemed very few offers.\",  \n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        -48
+      ],
+      "id": "05d4715a-9b10-4c28-9e50-c5877b0790d3",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "726be08a-2cbb-4edb-ad04-18caf7fb5556",
+              "leftValue": "={{ $json.output.churn_probability_percent }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        -64
+      ],
+      "id": "5a207c0d-4651-4231-84e1-48dbe5b1a935",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "Send renewal discount or exclusive benefit",
+        "subject": "here are your renewal discount or exclusive benefit",
+        "message": "here are the offers for you",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        976,
+        -160
+      ],
+      "id": "1366e7c4-3c63-46f5-bdd2-e8ad1cb6bbda",
+      "name": "Send a message",
+      "webhookId": "d283d6b2-1e87-49fe-8fe7-c18bd83c3a48",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r3lQsBdqR9OVbxJX",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "customer@gmail.com",
+        "subject": "Send a personalized engagement offer",
+        "message": "here are your personalized engagement offer",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        976,
+        144
+      ],
+      "id": "e86082a9-5270-441f-8197-d4d3adf50223",
+      "name": "Send a message1",
+      "webhookId": "9a48b30b-7dd4-454d-ad9d-060a4e6f3681",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r3lQsBdqR9OVbxJX",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4",
+          "mode": "list",
+          "cachedResultName": "financial analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "churn_prediction",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "churn_probability_percent": "={{ $json.output.churn_probability_percent }}",
+            "reason of churn percent": "={{ $json.output.main_reason }}"
+          },
+          "matchingColumns": [
+            "customer_id"
+          ],
+          "schema": [
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "membership_start_date",
+              "displayName": "membership_start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "membership_end_date",
+              "displayName": "membership_end_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "offers_redeemed",
+              "displayName": "offers_redeemed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "total_spent",
+              "displayName": "total_spent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "login_frequency",
+              "displayName": "login_frequency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last_active_date",
+              "displayName": "last_active_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "renewal_status",
+              "displayName": "renewal_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "churn_probability_percent",
+              "displayName": "churn_probability_percent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason of churn percent",
+              "displayName": "reason of churn percent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        688,
+        -272
+      ],
+      "id": "adafa975-620d-4153-9243-26715c7f6e50",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Churn Prediction",
+        "height": 80,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1152,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "1dae3fbe-3f4d-47c5-b852-5f094e47a51f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4",
+          "mode": "list",
+          "cachedResultName": "financial analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1929725032,
+          "mode": "list",
+          "cachedResultName": "revenue predidction",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit#gid=1929725032"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        48,
+        240
+      ],
+      "id": "7d2b2e9a-eb59-409e-98cd-5a58eac0e5f9",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        352
+      ],
+      "id": "272e1271-f96f-4e33-8d9a-f55f7a552f88",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kytOQtY5jjTHXqvJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"forecast\": [\n    { \"month\": \"2025-01\", \"projected_revenue\": 245000 },\n    { \"month\": \"2025-02\", \"projected_revenue\": 257000 },\n    { \"month\": \"2025-03\", \"projected_revenue\": 266500 }\n  ],\n  \"trend_analysis\": \"Renewals are increasing while churn is gradually decreasing, indicating stronger user engagement.\",\n  \"recommended_growth_action\": \"Offer limited-time loyalty perks and highlight new partner brands to drive renewals.\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        352
+      ],
+      "id": "cdb035f5-9582-4133-aa29-fab683d5475c",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4",
+          "mode": "list",
+          "cachedResultName": "financial analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 114997719,
+          "mode": "list",
+          "cachedResultName": "vendor_performance_prediction",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit#gid=114997719"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        48,
+        640
+      ],
+      "id": "253c2b46-8a52-471e-91e8-91b9086a7633",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"vendors\": [\n    {\n      \"vendor_id\": \"VEND001\",\n      \"vendor_name\": \"Glow Salon\",\n      \"performance_tier\": \"High Value Vendor\",\n      \"predicted_trend_next_month\": \"Increase\",\n      \"key_reason\": \"High redemptions and high customer satisfaction rating (4.8).\",\n      \"recommended_action\": \"Feature this vendor in the app homepage and negotiate premium visibility partnership.\"\n    }\n  ],\n  \"portfolio_summary\": \"Top spa vendors are driving strong engagement, while a few restaurant partners show declining ratings.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        864
+      ],
+      "id": "001d94f0-ed76-4602-8b73-53fb94dff884",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        864
+      ],
+      "id": "e83eafa0-a061-41f4-b257-5ae7fa4ecb1d",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kytOQtY5jjTHXqvJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "next 3 months revenue prediction",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        432
+      ],
+      "typeVersion": 1,
+      "id": "904dd043-075b-4193-b4a8-8124cdfd95ac",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "vendor performance prediction \n\nalso send the vendor performance to ceo",
+        "height": 112,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1184,
+        720
+      ],
+      "typeVersion": 1,
+      "id": "351114fa-a6c3-4a4b-84fc-5bce21528cfc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "sendTo": "ceo@gmail.com",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output.email_body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        976,
+        640
+      ],
+      "id": "05982664-eb46-4798-a061-e04fdd7785e2",
+      "name": "Send a message2",
+      "webhookId": "6d76a34c-1f7c-4a02-8263-8970198fb210",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r3lQsBdqR9OVbxJX",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an executive communication assistant. You will write a clear, concise, and professional email summarizing vendor performance insights to the CEO.\n\nBelow is the Vendor Performance Prediction JSON data:\n{{ JSON.stringify($json) }}\n\nYour output MUST follow this **exact JSON structure**:\n\n{\n  \"subject\": \"<short email subject>\",\n  \"email_body\": \"<well-written email body text only>\"\n}\n\nGuidelines for writing the email:\n\n- Audience: CEO (senior leadership level).\n- Tone: Clear, confident, concise, respectful.\n- Length: 140–180 words total.\n- Do NOT include the JSON dataset in the email body.\n- Instead, extract insights and summarize.\n\nEmail Body Must Include:\n1. Greeting: “Dear <CEO Name>,”\n2. One-paragraph summary of overall vendor performance health (from portfolio_summary).\n3. Bullet points for:\n   - Top 2 High Value Vendors (explain why they are performing strongly).\n   - Top 1–2 Risk Vendors (explain issue briefly).\n4. One short strategic recommendation (based on recommended_action fields).\n5. Closing line + signature:\n   “Regards,\n   <Your Name>”\n\nDo NOT add any text before or after the JSON. Only return the JSON.\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        640
+      ],
+      "id": "c2efb489-f0d0-4b7a-a1d7-c66746db4168",
+      "name": "AI Agent4"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"subject\": \"Vendor Performance Insights - Monthly Summary\",\n  \"email_body\": \"Dear Rohan,\\n\\nHere is the latest vendor performance overview for this period. Overall engagement remains strong, with wellness partners driving consistent redemptions and customer satisfaction levels.\\n\\nHigh Value Vendors:\\n• Glow Salon – Strong redemptions and a high rating (4.8) indicate excellent customer experience.\\n• Bliss Wellness Spa – High unique customer visits and strong average bill value.\\n\\nRisk Vendors:\\n• The Groom Room (Spa) – Decline in return visits and lower satisfaction score suggests service fatigue.\\n\\nRecommendation:\\nPrioritize spotlight placement and renewal discussions for high performers, while initiating performance review and offer refresh for at-risk vendors.\\n\\nRegards,\\nParth\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        768,
+        864
+      ],
+      "id": "7211bbe2-1187-4d60-905a-d5a2a920ea21",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        640,
+        864
+      ],
+      "id": "c4da0753-66ff-4c0d-bb8f-d8fcf5e34930",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kytOQtY5jjTHXqvJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4",
+          "mode": "list",
+          "cachedResultName": "financial analysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1929725032,
+          "mode": "list",
+          "cachedResultName": "revenue_prediction",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RUH1lmRAzJMktFEx7pEq5a0U949SBnA3Pa16E8FJkF4/edit#gid=1929725032"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "forecast of next 3 months"
+          ],
+          "schema": [
+            {
+              "id": "month",
+              "displayName": "month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "new_subscriptions",
+              "displayName": "new_subscriptions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "renewals",
+              "displayName": "renewals",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "churn_count",
+              "displayName": "churn_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "avg_subscription_value",
+              "displayName": "avg_subscription_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "revenue",
+              "displayName": "revenue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "forecast of next 3 months",
+              "displayName": "forecast of next 3 months",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "trend_analysis",
+              "displayName": "trend_analysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "recommended_growth_action",
+              "displayName": "recommended_growth_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        688,
+        240
+      ],
+      "id": "6287e8d0-8ab8-4c05-a740-a8d290f7698e",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Churn Prediction AI Agent for a subscription-based lifestyle membership app like Vaamoz.\n\nYou are given the following user attributes:\n\n- Offers Redeemed: {{ $json.offers_redeemed }}\n- Total Spent: {{ $json.total_spent }}\n- Login Frequency (past 30 days): {{ $json.login_frequency }}\n- Days Since Last Active: {{ $json.last_active_date }}\n- Membership End Date: {{ $json.membership_end_date }}\n- Membership Start Date: {{ $json.membership_start_date }}\n\nYour task:\n1. Analyze the likelihood that this user will NOT renew their membership.\n2. Predict churn probability between **0% and 100%**.\n3. Provide the **reasoning** in clear, simple business language(in one line).\n\n\nReturn the result strictly in JSON format:\n\n{\n  \"churn_probability_percent\": <number between 0-100>,\n  \"risk_level\": \"Low\" | \"Medium\" | \"High\",\n  \"main_reason\": \"<reason user may churn in a single line>\",\n\n}\nExample Output :\n{\n  \"churn_probability_percent\": 72,\n  \"risk_level\": \"High\",\n  \"main_reason\": \"User has not used any offers in the past 45 days and login activity is low.\",\n  \n}\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        -272
+      ],
+      "id": "8c2a8d4f-f13b-4132-9d19-eba934985d65",
+      "name": "Churn prediction Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Revenue Forecasting AI Agent for a subscription-based lifestyle membership business.\n\nBelow is the historical monthly performance data including:\n- month : {{ $json.month }}\n- new_subscriptions : {{ $json.new_subscriptions }}\n- renewals : {{ $json.renewals }}\n- churn_count : {{ $json.churn_count }}\n- avg_subscription_value : {{ $json.avg_subscription_value }}\n- revenue : {{ $json.revenue }}\n\nYour tasks:\n1. Analyze trends in subscription growth, renewals, churn, and pricing.\n2. Forecast the next 3 months of revenue.\n3. Identify whether revenue is trending upward, downward, or stable.\n4. Suggest one strategic business action to improve revenue.\n5. Return your answer **only in the JSON format** below (no explanations, no extra text).\n\nHere is the historical dataset:\n- month : {{ $json.month }}\n- new_subscriptions : {{ $json.new_subscriptions }}\n- renewals : {{ $json.renewals }}\n- churn_count : {{ $json.churn_count }}\n- avg_subscription_value : {{ $json.avg_subscription_value }}\n- revenue : {{ $json.revenue }}\n\n\nReturn the response strictly in this JSON structure:\n\n{\n  \"forecast\": [\n    {\n      \"month\": \"<YYYY-MM>\",\n      \"projected_revenue\": <number>\n    },\n    {\n      \"month\": \"<YYYY-MM>\",\n      \"projected_revenue\": <number>\n    },\n    {\n      \"month\": \"<YYYY-MM>\",\n      \"projected_revenue\": <number>\n    }\n  ],\n  \"trend_analysis\": \"<short business trend note>\",\n  \"recommended_growth_action\": \"<one recommended strategic action>\"\n}\n\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        128
+      ],
+      "id": "5d309a9f-5ccc-4217-9a0c-71e13d7d5401",
+      "name": "Monthly revenue Prediction"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Vendor Performance Insight and Prediction AI Agent for a lifestyle membership platform.\n\nYou will be given vendor performance data with the following fields:\n- vendor_id\n- vendor_name\n- category\n- redemptions_count\n- unique_customers_used\n- avg_bill_value\n- offer_discount_percentage\n- vendor_rating\n\nYour tasks:\n1. Evaluate each vendor's current performance based on:\n   - Customer engagement (redemptions_count + unique_customers_used)\n   - Revenue contribution potential (avg_bill_value)\n   - Customer satisfaction (vendor_rating)\n   - Discount efficiency (offer_discount_percentage vs. usage)\n\n2. Categorize each vendor into one of these tiers:\n   - **High Value Vendor** → strong redemptions, high rating, strong revenue contribution\n   - **Stable Vendor** → consistent usage, steady satisfaction, moderate revenue contribution\n   - **Risk Vendor** → low usage, declining rating, or high discount dependency\n\n3. Predict next month’s performance trend:\n   - \"Increase\", \"Stable\", or \"Decline\"\n\n4. Recommend one **action** to optimize performance for each vendor\n   (e.g., promote, renegotiate discount, improve quality, highlight in app, seasonal push).\n\nReturn the result strictly in the following JSON format (no explanation outside JSON):\n\n{\n  \"vendors\": [\n    {\n      \"vendor_id\": \"<id>\",\n      \"vendor_name\": \"<name>\",\n      \"performance_tier\": \"<High Value Vendor | Stable Vendor | Risk Vendor>\",\n      \"predicted_trend_next_month\": \"<Increase | Stable | Decline>\",\n      \"key_reason\": \"<one-sentence summary based on data>\",\n      \"recommended_action\": \"<specific business recommendation>\"\n    }\n  ],\n  \"portfolio_summary\": \"<1–2 sentence overview of platform vendor performance health>\"\n}\n\nHere is the vendor dataset to evaluate:\n{{ $json.vendor_id }},{{ $json.vendor_name }}, {{ $json.category }}, {{ $json.category }}, {{ $json.redemptions_count }}, {{ $json.unique_customers_used }}, {{ $json.avg_bill_value }}, {{ $json.offer_discount_percentage }} and {{ $json.vendor_rating }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        640
+      ],
+      "id": "029e2845-7c92-44d5-bbe1-03183428ace8",
+      "name": "Vendor performance Agent"
+    },
+    {
+      "parameters": {
+        "content": "📌 Automated Financial Analysis\n🤖 What It Does\n\nRuns AI-powered churn prediction, monthly revenue forecasting, and vendor performance scoring, updates Google Sheets, and auto-sends business reports to stakeholders.\n\n🎯 Key Benefits:\n\n📉 Predict customer churn early\n📈 Forecast next month’s revenue automatically\n🛒 Evaluate vendor performance for CXO insights\n🔄 Zero manual analysis or reporting\n✉️ Automatic email delivery to business & leadership teams\n\n📘 Workflow Breakdown:\n\n🟢 Trigger: Workflow runs manually to generate all financial predictions.\n📑 Get Rows (Sheet – Customers): Load customer data for churn analysis.\n🧠 Churn Prediction Agent: AI predicts churn probability + reasons + risk score.\n📊 Update Sheet: Write churn prediction results back into Google Sheets.\n📩 Send Email: Personalized email to the clients whose churn ratio is high\n📑 Get Rows (Sheet1 – Finance): Load financial dataset for revenue prediction.\n🧠 Monthly Revenue Prediction Agent: AI predicts next month’s revenue + confidence metrics.\n📊 Update Sheet: Save predicted revenue to the sheet.\n📩 Send Email: Email revenue forecast to finance & leadership.\n📑 Get Rows (Sheet2 – Vendors): Load vendor dataset for performance evaluation.\n🧠 Vendor Performance Agent (AI3): AI analyzes vendor efficiency, cost, delivery & rating.\n🧠 AI Agent4 (Scoring): AI generates final vendor performance score + recommendation.\n📩 Send Email: Email vendor performance report to COO/CEO.\n📤 Final Output\n\nOne click → churn prediction → revenue forecast → vendor performance → updated sheets → automated email reports.",
+        "height": 704,
+        "width": 752
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1456,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "56aeef68-8a75-4b21-85d5-7188c2517ae4",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Churn prediction Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Churn prediction Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Churn prediction Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Monthly revenue Prediction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Monthly revenue Prediction",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Monthly revenue Prediction",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Vendor performance Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Vendor performance Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent4": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Churn prediction Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly revenue Prediction": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vendor performance Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a5784b6c-18ef-45b1-bbfa-e3f93ad5e923",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0ccffdea81e925b3303a9cbb5fddc7b64cd3922eae110f482bfcc725e8e35ee3"
+  },
+  "id": "QhAqbYvh56LFu6WS",
+  "tags": []
+}

@@ -1,0 +1,871 @@
+{
+  "name": "Recruitment System",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "132b7ed7-f102-48c0-a6f8-38ae2b806222",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg",
+          "mode": "list",
+          "cachedResultName": "NewRecruitmentSystem",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "083c9b95-f10c-4b86-aebc-0111a406ea7f",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.CV }}",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        80
+      ],
+      "id": "8dfc3cb6-6222-4ced-85a1-345920842d96",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "rVWzbznRC626le7W",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        432,
+        80
+      ],
+      "id": "a7f1914a-af25-4c58-8956-d1f19ca8ea79",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional talent evaluator AI.  \nYour task is to assess how well the applicant fits the role of {{ $('Get row(s) in sheet').item.json['Position applied '] }} by analyzing information from BOTH their CV and LinkedIn profile.\n\n====================\n🎯 Evaluation Rules\n====================\n1. Give **equal importance (50% each)** to both the CV and the LinkedIn profile.  \n   - **CV Match Score (0–50):** Evaluate based on technical skills, education, projects, experience, and how directly they align with the role.  \n   - **LinkedIn Match Score (0–50):** Evaluate based on professional summary, consistency, public experience, endorsements, activity, and presentation related to the role.    - Be very strict with scores.\n\n2. Combine both partial scores into an **Overall Compatibility Score (0–100)**:\n   - Overall Score = (CV Score + LinkedIn Score)\n   - The score should reflect both depth (CV) and credibility/visibility (LinkedIn).\n\n3. Identify overlapping or consistent strengths between both sources — these indicate verified skills and should be highlighted as major strengths.  \n\n4. Identify missing, weak, or inconsistent information between the two — these are weaknesses or potential red flags.  \n\n5. Keep the analysis **factual, concise, and balanced** — do not overemphasize one source over the other.  \n\n====================\n🧩 Output Format\n====================\nProvide your final response **only** in the following JSON structure (no text outside JSON):\n\n{\n  \"cv_score\": \"0-50, based on how well the CV matches the {{ $('Get row(s) in sheet').item.json['Position applied '] }} role\",\n  \"linkedin_score\": \"0-50, based on how well the LinkedIn profile matches the {{ $('Get row(s) in sheet').item.json['Position applied '] }} role\",\n  \"overall_score\": \"0-100, sum of the two scores representing the overall fit for the position\",\n  \"strengths\": \"List 3–5 key strengths validated across both CV and LinkedIn, focusing on alignment with the role\",\n  \"weaknesses\": \"List 2–3 weaknesses, missing skills, or inconsistencies found between CV and LinkedIn\",\n  \"verdict\": \"One-sentence overall judgment of the candidate’s suitability for the {{ $('Get row(s) in sheet').item.json['Position applied '] }} role\"\n}\nand be consistent with the output format\n====================\n📄 Data Sources\n====================\nCV Text:\n{{ $json.content.parts[0].text }}\n\nLinkedIn Text:\n{{ $('Message a model').item.json.content.parts[0].text }}\n\n\n\n\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        -16
+      ],
+      "id": "78591dfa-7829-45f1-94d5-f14fa8279cff",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        208
+      ],
+      "id": "a68bde00-c717-4239-95c5-0820473ef7d6",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kytOQtY5jjTHXqvJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "={\n  \"cv_score\": \"0-50, based on how well the CV matches the {{ $('Get row(s) in sheet').item.json['Position applied '] }} role\",\n  \"linkedin_score\": \"0-50, based on how well the LinkedIn profile matches the {{ $('Get row(s) in sheet').item.json['Position applied '] }} role\",\n  \"overall_score\": \"0-100, sum of the two scores representing the overall fit for the position\",\n  \"strengths\": \"List 3–5 key strengths validated across both CV and LinkedIn, focusing on alignment with the role\",\n  \"weaknesses\": \"List 2–3 weaknesses, missing skills, or inconsistencies found between CV and LinkedIn\",\n  \"verdict\": \"One-sentence overall judgment of the candidate’s suitability for the {{ $('Get row(s) in sheet').item.json['Position applied '] }} role\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1376,
+        208
+      ],
+      "id": "546e7ed1-9645-4382-8886-b9619bbb4ed4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1008,
+        -16
+      ],
+      "id": "5324bbdd-051e-432d-b025-7b0d66ad4313",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/yZnhB5JewWf9xSmoM/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apify_api_"add your token here"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"findContacts\": false,\n    \"scrapeCompany\": true,\n    \"urls\": [\n        {\n            \"url\": \"{{ $json['LikedIn Url'] }}\"\n        }\n    ]\n} ",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        432,
+        -112
+      ],
+      "id": "099d09f3-9b65-442e-b7f1-6a3b195f4673",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert admissions and talent evaluator. \nYour task is to read structured LinkedIn profile data (in JSON format) of a student candidate and summarize it in a professional, recruiter-style tone.\n\nFollow these rules carefully:\n\n1. **Purpose:** Produce a insightful profile summary that helps in deciding whether the student is suitable for an internship, placement, or graduate program.\n\n2. **Content Focus:**\n   - Highlight the student’s **name**, **current role or degree**, and **main technical strengths**.\n   - Summarize **education background** (degree, university, and year if available).\n   - Extract **key skills** — emphasize technical or domain-relevant ones.\n   - Give a brief overview of **experience or projects**, if available.\n   - Mention any **notable achievements, certifications, or languages** if listed.\n   - Conclude with an **overall impression** of the candidate’s readiness and potential.\n\n3. **Tone & Style:**\n   - Write in 6-8 concise sentences.\n   - Maintain a professional, objective, and slightly positive tone.\n   - Avoid repetition, raw JSON data, or bullet points.\n   - If data is missing, omit that section smoothly instead of writing “not available”.\n\n\n5. **Input :**\n   \n     \"name\": {{ $json.firstName }} {{ $json.lastName }},\n     \"headline\": {{ $json.headline }},\n     \"summary\": {{ $json.summary }},\n     \"education\": {{ $json.educations }},\n     \"skills\": {{ $json.skills }},\n     \"experiences\": {{ $json.positions }},\n     \"certifications\": {{ $json.certifications }} and \n     \"projects\": {{ $json.projects }} \n  \n\n6. **Your Output:**\n   A briefly summarized paragraph (not bullet points), clearly written as a summary.\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -112
+      ],
+      "id": "75a31df7-e0e0-4267-b1fc-8df579b28f6b",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kytOQtY5jjTHXqvJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=This is the entire data extracted from the CV for {{ $('Get row(s) in sheet').item.json['Position applied '] }} role : {{ $json.text }} Summarize the resume according to the {{ $('Get row(s) in sheet').item.json['Position applied '] }} role."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        656,
+        80
+      ],
+      "id": "e1954db0-bcdd-4062-95c4-c9c0f27efd77",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kytOQtY5jjTHXqvJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg",
+          "mode": "list",
+          "cachedResultName": "NewRecruitmentSystem",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "LikedIn Url": "={{ $('Get row(s) in sheet').item.json['LikedIn Url'] }}",
+            "strengths": "={{ $json.output.strengths }}",
+            "weaknesses": "={{ $json.output.weaknesses }}",
+            "verdict": "={{ $json.output.verdict }}",
+            "LinkedIn score": "={{ $json.output.linkedin_score }}",
+            "Cv score": "={{ $json.output.cv_score }}",
+            "Overall Score": "={{ $json.output.overall_score }}"
+          },
+          "matchingColumns": [
+            "LikedIn Url"
+          ],
+          "schema": [
+            {
+              "id": "Candidate Name ",
+              "displayName": "Candidate Name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Position applied ",
+              "displayName": "Position applied ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "CV",
+              "displayName": "CV",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "LikedIn Url",
+              "displayName": "LikedIn Url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "strengths",
+              "displayName": "strengths",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "weaknesses",
+              "displayName": "weaknesses",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "verdict",
+              "displayName": "verdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn score",
+              "displayName": "LinkedIn score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Cv score",
+              "displayName": "Cv score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Overall Score",
+              "displayName": "Overall Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1584,
+        -16
+      ],
+      "id": "0e368b35-58e2-4aaa-b661-0e07b8b45d74",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg",
+          "mode": "list",
+          "cachedResultName": "NewRecruitmentSystem",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZJDYT3S6H2ivom4o5y1_Ahwl8x6AKwNh0QD-gUUANRg/edit#gid=0"
+        },
+        "event": "rowUpdate",
+        "options": {
+          "columnsToWatch": [
+            "Status"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        608
+      ],
+      "id": "9f73dff8-919f-4b67-b451-395d52466329",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "6PsLpKzkntLy1KP8",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Status }}",
+                    "rightValue": "CV Reviewed - Schedule Call",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "fe958df5-d8c6-4a90-ad35-6a2cfb8b2e96"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Call"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ae3dc21e-ef47-4f3d-ae82-c3249e02acfd",
+                    "leftValue": "={{ $json.Status }}",
+                    "rightValue": "Interview – Scheduled",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Interview"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4727e454-284d-4041-b749-6afb2039571e",
+                    "leftValue": "={{ $json.Status }}",
+                    "rightValue": "Offer Extended",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Offer"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "39985d74-5b9e-42f0-bd31-5c5556597798",
+                    "leftValue": "={{ $json.Status }}",
+                    "rightValue": "Rejected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Rejected"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -16,
+        576
+      ],
+      "id": "6ccba653-fca1-4f36-afd4-9a6c08fea796",
+      "name": "Sub Status Updated"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json.Email }}",
+        "subject": "=Schedule a Call for the {{ $('Google Sheets Trigger').item.json['Position applied for'] }} Role",
+        "message": "=Dear {{ $('Google Sheets Trigger').item.json['Candidate Name '] }}, \n\nThank you once again for applying for the {{ $('Google Sheets Trigger').item.json['Position applied for'] }} role at our company. We were impressed with your background and would like to invite you to the next step in our hiring process.  \n\nPlease use the link below to schedule a convenient time for a call with our recruitment team:  www.example.com/meetinglink  This call will give us a chance to learn more about you and give you an opportunity to ask any questions about the role and our company.    \nWe look forward to speaking with you soon.    \n\nBest regards,\nHR Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        320
+      ],
+      "id": "1a739069-e585-4624-be8b-8fb8357116a0",
+      "name": "Schedule Call",
+      "webhookId": "fe8dcb4c-2738-4429-ae39-47b0adad526d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r3lQsBdqR9OVbxJX",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json.Email }}",
+        "subject": "=Interview Invitation – {{ $('Google Sheets Trigger').item.json['Position applied for'] }} Role",
+        "message": "=Dear {{ $json[\"Candidate Name\"] }},  \n\nThank you for your interest in the {{ $json[\"Position Applied For\"] }} role at our company. We’re pleased to inform you that you’ve been shortlisted for the next stage of the hiring process.  \n\nWe would like to invite you to attend an interview with our team. Please use the link below to choose a suitable time:  www.example.com/interview-link. The interview will last approximately 30-45 mintues. If you have any questions or need to reschedule, feel free to reach out to us.    \n\nWe look forward to speaking with you and learning more about your skills and experience.    \n\nBest regards,   \nHR Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        512
+      ],
+      "id": "0a3e348c-4ab3-4d3c-a54a-aef5468b5968",
+      "name": "Interview Invitation",
+      "webhookId": "410f1687-ebda-4055-85b6-8ab3932324bf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r3lQsBdqR9OVbxJX",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json.Email }}",
+        "subject": "=Job Offer – {{ $('Google Sheets Trigger').item.json['Position applied '] }}",
+        "message": "=Dear {{ $json['Candidate Name '] }},  \n\nCongratulations! We are delighted to extend an offer for the {{ $('Google Sheets Trigger').item.json['Position applied '] }} role at our company.    After carefully reviewing your application and interview performance, we believe you will be a valuable addition to our team.   We’ve attached your official offer letter to this email. Kindly review it and let us know your decision.  \n\nIf you have any questions or would like to discuss the offer further, please don’t hesitate to reach out.    \n\nWe are excited about the possibility of you joining our team and contributing to our success.    \n\nBest regards,   \nHR Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        704
+      ],
+      "id": "6b7ebb33-763b-476c-aef9-2648f296fb4c",
+      "name": "Job Offer",
+      "webhookId": "70bb55bf-cb6a-44d3-bda5-4f09d22ae68f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r3lQsBdqR9OVbxJX",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json.Email }}",
+        "subject": "=Application Outcome – {{ $('Google Sheets Trigger').item.json['Position applied for'] }}",
+        "message": "=Dear {{ $('Google Sheets Trigger').item.json['Candidate Name '] }},\n\nThank you for taking the time to apply for the {{ $('Google Sheets Trigger').item.json['Position applied for'] }} role at our company and for sharing your background and experience with us.  \n\nAfter careful consideration, we regret to inform you that we will not be moving forward with your application at this time. The decision was not easy, as we had many strong applicants.  \n\nWe truly appreciate the effort you put into the process and encourage you to apply for future opportunities that match your skills and interests.  \n\nWe wish you every success in your job search and future career.  \n\nBest regards,  \nHR Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        896
+      ],
+      "id": "aaf3011a-a9dd-458a-8c4a-6caeaa3ad29f",
+      "name": "Rejected",
+      "webhookId": "7127bf7d-bfee-406b-bc75-cedae5497f6f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r3lQsBdqR9OVbxJX",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "📌 Automated Recruitment Process \n🤖 What It Does\n\nFully automates resume analysis, candidate evaluation, AI scoring, decision routing, and email notifications — reducing manual recruiter effort and speeding up the entire hiring cycle.\n\n🎯 Key Benefits:\n\n⚡ Rapid resume screening\n🧠 AI-driven candidate scoring & shortlisting\n📩 Auto-send interview, offer & rejection emails\n🔄 Automatically reacts to status changes in the sheet\n🧹 Zero manual follow-up or repetitive communication\n\n📘 Workflow Breakdown:\n\n🟢 Trigger: Workflow starts manually to process new applicants.\n📑 Get Rows (Sheets): Fetch recent applicant entries from Google Sheets.\n📥 Download File: Download the candidate’s uploaded resume (PDF).\n📄 Extract from File: Extract raw text from the resume.\n🌐 HTTP Request: Fetch additional candidate metadata (if any) via API.\n🤖 LLM Processing (Model 1): AI analyzes resume → extracts skills, experience, summary.\n🤖 LLM Processing (Model 2): AI evaluates candidate fit → generates score, recommendation.\n🔗 Merge: Combine both AI outputs (resume insights + suitability scores).\n🧠 AI Agent: Produces a structured evaluation (fit score, strengths, weaknesses, action).\n📊 Append/Update Sheets: Saves the AI-assessed candidate evaluation back into Google Sheets.\n📨 Automated Email Reactions (Status-Based)\n🟩 Sheets Trigger: Detects when recruiter updates the “Status” column.\n⚙️ Switch (Status Logic): Routes actions based on updated status:\n\n📞 Schedule Call: Sends email to set up interview.\n\n✉️ Interview Invitation: Sends official interview invite.\n\n💼 Job Offer: Sends offer letter email template.\n\n❌ Rejected: Sends polite rejection email.\n\n📤 Final Output\n\nA fully automated pipeline that handles:\nResume → AI Analysis → Scoring → Sheet Update → Auto Emails → Interview/Offer Flow\n\nNo manual repetitive tasks. Fully scalable.",
+        "height": 864,
+        "width": 928
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        352
+      ],
+      "typeVersion": 1,
+      "id": "da79ebe7-11dc-4cb3-a4b5-8d5a3a9b818d",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sub Status Updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub Status Updated": {
+      "main": [
+        [
+          {
+            "node": "Schedule Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Interview Invitation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Job Offer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6f14e2e2-9867-4e61-b32c-bdbdb2ee6207",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0ccffdea81e925b3303a9cbb5fddc7b64cd3922eae110f482bfcc725e8e35ee3"
+  },
+  "id": "oYM01rWZRoZn0dA0",
+  "tags": []
+}
