@@ -1,145 +1,229 @@
 # 🤖 AI-Powered Business Automation Suite
 
-A collection of intelligent, production-ready automations built using n8n, Google Gemini, Mistral OCR, Google Sheets, Jira, Gmail, and cloud APIs.
+A collection of intelligent, production-ready automations built using n8n, Google Gemini, Mistral OCR, Google Sheets, Jira, Gmail, HubSpot, Apollo, and cloud APIs.
 
-This suite replaces manual, repetitive workflows across Product, Finance, HR, and Business Operations — using end-to-end AI automation.
+This suite replaces manual, repetitive workflows across Product, Sales, Finance, HR, and Business Operations through end-to-end AI automation.
+
+---
 
 ## 📂 Project Overview
 
-This repository includes four major automation systems till now and will be adding more:
+This repository includes five major automation systems and will continue expanding with new AI-driven workflows.
 
-## 1️⃣ Automated Business Analyst → Jira Pipeline
-📌 Purpose:
+### 1️⃣ Automated Business Analyst → Jira Pipeline
 
-Transform product requirement PDFs into fully prepared Jira tickets with User Stories, ACs, technical solutions, and priorities — without any manual effort.
+#### 📌 Purpose
 
-🔧 What It Does:
+Transform product requirement PDFs into fully prepared Jira tickets with User Stories, Acceptance Criteria, technical solutions, and priorities — without manual effort.
 
-Extracts text & requirements from PDF files
+#### 🔧 What It Does
 
-Generates User Stories + Acceptance Criteria using a Business Analyst AI agent
+- Extracts text and requirements from PDF documents
+- Generates User Stories and Acceptance Criteria using a Business Analyst AI Agent
+- Creates Jira tickets automatically
+- Produces solution designs via a Solution Architect AI Agent
+- Assigns priorities using a Project Manager AI Agent
+- Logs all generated outputs into Google Sheets
 
-Creates Jira tickets automatically
+#### 🎯 Outcome
 
-Produces solution design via a Solution Architect AI agent
+A complete backlog generation system that converts raw requirement documents into development-ready Jira tasks.
 
-Assigns priority using a Project Manager AI agent
+---
 
-Logs all data to Google Sheets for transparency
+### 2️⃣ Invoice OCR & Data Extraction System
 
-🎯 Outcome:
-
-A complete backlog creation system that converts raw documents → ready-to-develop Jira tasks.
-
-## 2️⃣ Invoice OCR & Data Extraction System
-📌 Purpose:
+#### 📌 Purpose
 
 Automate invoice processing and eliminate manual data entry in finance workflows.
 
-🔧 What It Does:
+#### 🔧 What It Does
 
-Detects new invoice PDFs/images in Google Drive
+- Detects new invoice PDFs and images uploaded to Google Drive
+- Performs OCR using Mistral OCR
+- Extracts invoice metadata using Gemini AI
+- Captures Invoice Number, Vendor, Amount, Tax, Date, and other fields
+- Stores structured records in Google Sheets
+- Prevents duplicate processing
 
-Performs OCR using Mistral (Doc + Image OCR)
+#### 🎯 Outcome
 
-Extracts key invoice fields using Gemini AI
+Hands-free invoice digitization for finance teams with improved speed and accuracy.
 
-Stores structured data (Invoice No, Vendor, Amount, Taxes, Date, etc.) into Sheets
+---
 
-Ensures files aren’t processed twice
+### 3️⃣ Automated Recruitment Workflow
 
-🎯 Outcome:
+#### 📌 Purpose
 
-Hands-free invoice digitization for finance teams — accurate, fast, and scalable.
+Accelerate hiring through AI-powered resume analysis, candidate evaluation, and communication automation.
 
-## 3️⃣ Automated Recruitment Workflow
-📌 Purpose:
+#### 🔧 What It Does
 
-Speed up hiring by automating resume analysis, candidate evaluation, and communication.
+- Processes candidate resumes from Google Drive
+- Extracts skills, experience, education, and candidate summaries
+- Scores candidates against job requirements using AI
+- Updates evaluation results in Google Sheets
+- Automatically sends:
+  - 📞 Interview Scheduling Emails
+  - 📨 Interview Invitations
+  - 💼 Offer Letters
+  - ❌ Rejection Emails
 
-🔧 What It Does:
+#### 🎯 Outcome
 
-Fetches candidate resumes from Google Drive
+An AI-powered recruitment system that automates candidate screening and communication workflows.
 
-Extracts candidate details (skills, experience, summary)
+---
 
-Scores candidate suitability using AI
+### 4️⃣ Automated Financial Analysis Engine
 
-Updates evaluation results in Sheets
+#### 📌 Purpose
 
-Auto-sends emails based on status:
+Provide AI-driven financial insights to support strategic business decisions.
 
-📞 Interview Scheduling
+#### 🔧 What It Does
 
-📨 Interview Invitation
+- Predicts customer churn and identifies contributing factors
+- Forecasts upcoming revenue
+- Evaluates vendor performance
+- Generates business intelligence reports
+- Automatically distributes insights to stakeholders
 
-💼 Job Offer
+#### 🎯 Outcome
 
-❌ Rejection Email
+A financial intelligence platform that delivers forecasts, risk indicators, and vendor performance analytics.
 
-🎯 Outcome:
+---
 
-An AI-powered ATS-like workflow that handles end-to-end candidate processing.
+### 5️⃣ LeadForge Pro — AI-Powered B2B Lead Generation & Outreach Pipeline
 
-## 4️⃣ Automated Financial Analysis
-📌 Purpose:
+#### 📌 Purpose
 
-Enable AI-driven financial insights for business decision-making.
+Automate the entire B2B prospecting workflow—from lead discovery and enrichment to validation, scoring, CRM synchronization, and outreach readiness.
 
-🔧 What It Does:
+#### 🔧 What It Does
 
-Predicts customer churn with reasons
+- Orchestrates a production-grade **48-node n8n workflow**
+- Integrates **Apollo.io, Hunter.io, Phantombuster, ZeroBounce, HubSpot, Instantly.ai, and Google Sheets**
+- Enriches company and contact data using multiple data providers
+- Cleans, normalizes, and structures lead information automatically
+- Uses intelligent decision-based routing with fallback logic for missing contacts and emails
+- Performs email waterfall enrichment:
+  - Apollo → Hunter
+- Validates emails using ZeroBounce with **95%+ deliverability thresholds**
+- Scores prospects using a custom persona-tier scoring algorithm
+- Identifies relevant decision-makers based on role, seniority, and company fit
+- Synchronizes leads into HubSpot using idempotent upsert logic to prevent duplicates
+- Implements retry mechanisms, error handling, and status tracking for reliability at scale
 
-Forecasts next month revenue
+#### 🎯 Outcome
 
-Evaluates vendor performance scores
+A scalable AI-powered lead generation engine that delivers high-quality, verified B2B prospects while reducing manual prospecting efforts and maintaining clean CRM data.
 
-Updates Sheets with results
-
-Sends automated reports to business, finance, CEO/COO
-
-🎯 Outcome:
-
-A complete financial intelligence engine providing early warnings, forecasts, and vendor insights.
+---
 
 ## 🧠 Technologies & Tools Used
 
-n8n – Workflow automation engine
+### Workflow Automation
+- n8n
 
-Google Gemini – AI reasoning, extraction & predictions
+### AI & Machine Learning
+- Google Gemini
+- Mistral OCR
 
-Mistral OCR – Document & image OCR
+### Sales & Lead Generation
+- Apollo.io
+- Hunter.io
+- Phantombuster
+- ZeroBounce
+- Instantly.ai
 
-Google Sheets – Data storage & tracking
+### CRM & Business Systems
+- HubSpot
+- Jira Cloud API
 
-Jira Cloud API – Ticket creation & updates
+### Data & Storage
+- Google Sheets
+- Google Drive
 
-Google Drive – File triggers
+### Communication
+- Gmail
 
-Gmail – Automated email delivery
+### Integrations
+- REST APIs
+- Webhooks
+- Custom API Integrations
 
-Custom APIs – Metadata & external integrations
+---
 
 ## 📈 Architecture Summary
 
-Each project follows the same core pattern:
+Each project follows a common architecture pattern:
 
-Trigger (manual, Drive event, or Sheet update)
+```text
+Trigger
+    ↓
+Data Ingestion
+    ↓
+AI Processing / Enrichment
+    ↓
+Decision Logic & Validation
+    ↓
+Business Action
+    ↓
+Storage / CRM Update
+    ↓
+Notification & Reporting
+```
 
-Data ingestion (PDFs, resumes, spreadsheets)
+### Examples
 
-AI processing (extraction, classification, prediction)
+- Product Requirements → AI Analysis → Jira Ticket Creation
+- Invoices → OCR → Structured Finance Records
+- Resumes → AI Evaluation → Candidate Communication
+- Financial Data → Forecasting → Executive Reports
+- Leads → Enrichment → Validation → CRM Sync → Outreach
 
-Data output (Sheets/Jira updated automatically)
+---
 
-Notification (emails or logs)
+## 🚀 Current Portfolio
+
+| Project | Domain |
+|----------|----------|
+| Automated Business Analyst → Jira Pipeline | Product Operations |
+| Invoice OCR & Data Extraction System | Finance |
+| Automated Recruitment Workflow | Human Resources |
+| Automated Financial Analysis Engine | Business Intelligence |
+| LeadForge Pro | Sales & Revenue Operations |
+
+---
 
 ## 📜 Why This Repository Exists
 
-This repo demonstrates how businesses can automate entire departments using AI agents and no-code orchestration — reducing manual work by 70–90%, improving accuracy, and accelerating decision-making.
+This repository demonstrates how businesses can automate entire departments using AI agents, workflow orchestration, and API integrations.
 
+These systems help organizations:
 
+- Reduce manual effort by **70–90%**
+- Improve process accuracy
+- Accelerate decision-making
+- Scale operations without proportional headcount growth
+- Build reliable, production-ready AI workflows
 
-## 🎉 More projects loading… 🚀
+---
 
-Stay tuned — new AI-driven automations will be added soon!
+## 🎉 More Projects Loading...
+
+Stay tuned for more AI-powered automations and multi-agent systems.
+
+Future additions may include:
+
+- AI Customer Support Agents
+- AI Sales Assistants
+- Marketing Automation Engines
+- Document Intelligence Platforms
+- Multi-Agent Business Workflows
+- Enterprise Operations Automation
+
+🚀 Continuously building AI systems that eliminate repetitive work and help teams move faster.
