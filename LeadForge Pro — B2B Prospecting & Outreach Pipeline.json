@@ -1,0 +1,3451 @@
+{
+  "name": "LeadForge Pro — B2B Prospecting & Outreach Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Eastern Weldmesh — Prospect Finder",
+        "formDescription": "Finds companies by category and location, enriches decision-maker contacts, verifies emails, and adds verified leads to your Instantly.ai campaign automatically.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Company Category",
+              "placeholder": "e.g. fencing contractor, steel mesh supplier, construction supplier",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Target Location",
+              "placeholder": "e.g. Melbourne VIC, Sydney NSW, Queensland",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Max Companies to Find (1–25)",
+              "fieldType": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "905829e7-3d47-4cae-bf28-6bfc59a5f645",
+      "name": "Form: Prospect Search",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -4480,
+        352
+      ],
+      "webhookId": "504186c9-d0c2-436b-bd5a-8a79d3084c00"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apollo.io/api/v1/mixed_companies/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"q_organization_keyword_tags\": [\"{{ $json['Company Category'] }}\"],\n  \"organization_locations\": [\"{{ $json['Target Location'] }}\"],\n  \"per_page\": {{ $json['Max Companies to Find (1\\u201325)'] || 25 }},\n  \"page\": 1\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 700
+            }
+          }
+        }
+      },
+      "id": "76568c75-2c66-4a04-8822-a1e3660e4c89",
+      "name": "Apollo: Discover Companies",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4256,
+        352
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4yUJp8NeZ4qP0qXN",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Pull name + domain from Apollo company-search response\nconst orgs = $input.first().json.organizations || [];\nif (!orgs.length) return [{ json: { _skip: true, error: 'Apollo returned 0 companies for this search' } }];\n\nreturn orgs\n  .filter(o => o.primary_domain || o.website_url)\n  .map(o => {\n    let domain = o.primary_domain;\n    if (!domain && o.website_url) {\n      domain = o.website_url.replace(/https?:\\/\\//, '').split('/')[0].replace(/^www\\./, '');\n    }\n    return {\n      json: {\n        company_name:    o.name,\n        company_domain:  domain.toLowerCase().trim(),\n        apollo_org_id:   o.id || '',\n        org_linkedin:    o.linkedin_url || '',\n        status:          'pending'\n      }\n    };\n  });"
+      },
+      "id": "03b5e484-adbe-4cec-a1f6-d604d10adfbe",
+      "name": "Extract Company Domains",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4032,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk",
+          "mode": "list",
+          "cachedResultName": "DATA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_domain",
+              "displayName": "company_domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apollo_org_id",
+              "displayName": "apollo_org_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_industry",
+              "displayName": "org_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_headcount",
+              "displayName": "org_headcount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_location",
+              "displayName": "org_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_first_name",
+              "displayName": "contact_first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_last_name",
+              "displayName": "contact_last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_title",
+              "displayName": "contact_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_seniority",
+              "displayName": "contact_seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_linkedin",
+              "displayName": "contact_linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email_status",
+              "displayName": "contact_email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_phone",
+              "displayName": "contact_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_tier",
+              "displayName": "persona_tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_label",
+              "displayName": "persona_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enriched_at",
+              "displayName": "enriched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "e35300c4-35f4-44a5-9e8a-ad9fa068fe89",
+      "name": "Append Companies to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -3808,
+        352
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Prospects",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c7b65098-06f3-45cd-af81-f846ec301767",
+      "name": "Read Pending Rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -3584,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apollo.io/api/v1/mixed_companies/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"q_organization_domains_list\": [\"{{ $json.company_domain }}\"],\n  \"per_page\": 1\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 700
+            }
+          }
+        }
+      },
+      "id": "37ea4c41-4eb9-4b5b-bbf1-1a7e42db3539",
+      "name": "Apollo: Find Organization",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3360,
+        352
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4yUJp8NeZ4qP0qXN",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a0ce990b-38da-404b-b5c2-9c6eff0b37c6",
+              "leftValue": "={{ $json.organizations ? $json.organizations.length : 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8850e409-302a-4220-8200-4c549bf6dd26",
+      "name": "IF: Org Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3136,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apollo.io/api/v1/mixed_people/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"organization_ids\": [\"{{ $json.organizations[0].id }}\"],\n  \"person_titles\": [\n    \"Purchasing Manager\",\"Head of Purchasing\",\"Director of Purchasing\",\n    \"Procurement Manager\",\"Senior Buyer\",\"Buyer\",\"Sourcing Manager\",\"Supply Chain Manager\",\n    \"Operations Manager\",\"Operations Director\",\"Fulfillment Manager\",\n    \"Warehouse Manager\",\"Production Manager\",\n    \"General Manager\",\"Managing Director\",\n    \"Founder\",\"Owner\",\"CEO\",\"President\"\n  ],\n  \"include_similar_titles\": true,\n  \"contact_email_status\": [\"verified\",\"likely to engage\",\"guessed\"],\n  \"per_page\": 10\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 700
+            }
+          }
+        }
+      },
+      "id": "17f933c7-37d5-43a3-b52f-62323e58903a",
+      "name": "Apollo: Search People",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2912,
+        256
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZYhcAyWaGveoc92V",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const TIERS = [\n  { tier: 5, label: 'Purchasing Manager',   patterns: [/purchasing\\s*manager/i,/head\\s*of\\s*purchasing/i,/director\\s*of\\s*purchasing/i,/vp.*purchasing/i] },\n  { tier: 4, label: 'Procurement \\/ Buyer',  patterns: [/procurement/i,/\\bbuyer\\b/i,/senior\\s*buyer/i,/sourcing/i,/supply\\s*chain/i] },\n  { tier: 3, label: 'Operations Manager',   patterns: [/operations\\s*manager/i,/ops\\s*manager/i,/operations\\s*director/i,/fulfillment/i,/warehouse\\s*manager/i,/production\\s*manager/i] },\n  { tier: 2, label: 'General Manager \\/ MD', patterns: [/general\\s*manager/i,/\\bgm\\b/i,/managing\\s*director/i] },\n  { tier: 1, label: 'Owner \\/ Founder',     patterns: [/\\bfounder\\b/i,/\\bowner\\b/i,/\\bceo\\b/i,/\\bpresident\\b/i,/^director$/i] }\n];\n\nfunction score(title) {\n  if (!title) return { tier: 0, label: 'No match' };\n  for (const t of TIERS) { if (t.patterns.some(p => p.test(title))) return t; }\n  return { tier: 0, label: 'No match' };\n}\n\nconst apolloResp = $input.item.json;\nconst people     = apolloResp.people || [];\nconst org        = ($('Apollo: Find Organization').item.json.organizations || [])[0] || {};\nconst row        = $('Read Pending Rows').item.json;\n\nconst scored = people\n  .map(p => ({ ...p, _score: score(p.title) }))\n  .filter(p => p._score.tier > 0)\n  .sort((a, b) => b._score.tier - a._score.tier)\n  .slice(0, 2);\n\nconst base = {\n  company_name:  row.company_name,\n  company_domain: row.company_domain,\n  apollo_org_id: org.id || '',\n  org_industry:  (org.industries || []).join(', '),\n  org_headcount: org.estimated_num_employees || '',\n  org_location:  [org.city, org.state, org.country].filter(Boolean).join(', '),\n  org_linkedin:  org.linkedin_url || ''\n};\n\nif (!scored.length) {\n  return { json: { ...base, found: false, error_reason: 'No contact matched persona tiers 1-5' } };\n}\n\nconst c1 = scored[0];\nconst c2 = scored[1] || null;\n\nreturn { json: {\n  ...base,\n  found: true,\n  contact_id:         c1.id,\n  contact_first_name: c1.first_name || '',\n  contact_last_name:  c1.last_name || '',\n  contact_title:      c1.title || '',\n  contact_linkedin:   c1.linkedin_url || '',\n  persona_tier:       c1._score.tier,\n  persona_label:      c1._score.label,\n  // Second contact (optional)\n  contact2_id:         c2 ? c2.id : '',\n  contact2_first_name: c2 ? c2.first_name || '' : '',\n  contact2_last_name:  c2 ? c2.last_name || '' : '',\n  contact2_title:      c2 ? c2.title || '' : '',\n  contact2_tier:       c2 ? c2._score.tier : '',\n  contact2_label:      c2 ? c2._score.label : ''\n}};"
+      },
+      "id": "f31cb318-bbad-4ab6-a65f-2ac6b95217d7",
+      "name": "Pick Best 1-2 Contacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2688,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4cf8b5b0-79a5-4ce2-a1d9-3191c44adda4",
+              "leftValue": "={{ $json.found }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "73a0c1c3-ac31-4237-9a3f-b29e1059e892",
+      "name": "IF: Contact Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2464,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apollo.io/api/v1/people/match",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"id\": \"{{ $json.contact_id }}\",\n  \"reveal_personal_emails\": true,\n  \"reveal_phone_number\": true\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 700
+            }
+          }
+        }
+      },
+      "id": "4318fc0d-7e6a-40f0-979a-1e8d63604ef3",
+      "name": "Apollo: Enrich Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2240,
+        64
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4yUJp8NeZ4qP0qXN",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5bb00586-9474-4de7-af20-ab7a3d5bcdad",
+              "leftValue": "={{ $json.person && $json.person.email ? $json.person.email.length : 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "086e63ae-b010-40a4-8799-9f035dde4207",
+      "name": "IF: Apollo Email Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2016,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.zerobounce.net/v2/validate?api_key={{ $credentials.zerobounceApiKey }}&email={{ encodeURIComponent($('Apollo: Enrich Contact').item.json.person.email) }}&ip_address=",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "177e7868-98d4-490c-a4f0-41766c3f46be",
+      "name": "ZeroBounce: Verify Apollo Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1792,
+        -128
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZYhcAyWaGveoc92V",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "440c74c2-7e65-4380-a9d1-7aabba3e95d3",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "valid",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a2a4c469-abec-428d-a42c-839f2b66237a",
+      "name": "IF: Apollo Email ≥95% Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1568,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f6e3fbb-0ce9-47ab-b636-62f82c0e9b1a",
+              "name": "company_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "d7beb8d1-f4f6-4ce9-8e50-a29076bda69c",
+              "name": "company_domain",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.company_domain }}",
+              "type": "string"
+            },
+            {
+              "id": "b5b540cd-e398-4471-891a-4827d0d8230e",
+              "name": "status",
+              "value": "done",
+              "type": "string"
+            },
+            {
+              "id": "f33ccfa8-e045-4a1f-a729-df6f1767b961",
+              "name": "apollo_org_id",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.apollo_org_id }}",
+              "type": "string"
+            },
+            {
+              "id": "8978953e-63ef-484f-8915-29dd7d7c8be7",
+              "name": "org_industry",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.org_industry }}",
+              "type": "string"
+            },
+            {
+              "id": "29be4557-c850-4bcc-9b62-f8080658b009",
+              "name": "org_headcount",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.org_headcount }}",
+              "type": "string"
+            },
+            {
+              "id": "e0de8e60-56ed-4c0a-a9b2-5cd5c7ffd5a4",
+              "name": "org_location",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.org_location }}",
+              "type": "string"
+            },
+            {
+              "id": "c0ed4760-321b-46e2-9014-e90cd02e6396",
+              "name": "contact_first_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact_first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "9119991e-4843-43dc-a3cd-521195a6a275",
+              "name": "contact_last_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact_last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "a1cf14bf-d51a-45d2-b43f-1d83558ad6d3",
+              "name": "contact_title",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact_title }}",
+              "type": "string"
+            },
+            {
+              "id": "3859be88-0980-4e91-a29a-f56d7717311e",
+              "name": "contact_linkedin",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact_linkedin }}",
+              "type": "string"
+            },
+            {
+              "id": "119ee9b7-9b3c-4b2e-9f94-ad22099e0271",
+              "name": "contact_email",
+              "value": "={{ $('Apollo: Enrich Contact').item.json.person.email }}",
+              "type": "string"
+            },
+            {
+              "id": "79bae8e6-6b02-481a-bdca-71fa82296cf7",
+              "name": "contact_email_status",
+              "value": "={{ $('Apollo: Enrich Contact').item.json.person.email_status || 'verified' }}",
+              "type": "string"
+            },
+            {
+              "id": "6a8d2659-40f0-4d33-9103-c4daf5370640",
+              "name": "contact_phone",
+              "value": "={{ $('Apollo: Enrich Contact').item.json.person.phone_numbers?.[0]?.sanitized_number || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "4fb9382f-e4b9-404c-b5ef-a0d0e539b7aa",
+              "name": "persona_tier",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.persona_tier }}",
+              "type": "number"
+            },
+            {
+              "id": "e7e27636-1509-4972-8b23-91d0a0834d55",
+              "name": "persona_label",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.persona_label }}",
+              "type": "string"
+            },
+            {
+              "id": "64968007-63df-465c-965e-e2b445d6bd69",
+              "name": "contact2_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact2_first_name + ' ' + $('Pick Best 1-2 Contacts').item.json.contact2_last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "9f800ad6-48b2-4a6e-91d9-f382892c5e6b",
+              "name": "contact2_title",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact2_title }}",
+              "type": "string"
+            },
+            {
+              "id": "cc06e9b5-ab01-4399-9ae8-9f70200746a6",
+              "name": "contact2_tier",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact2_tier }}",
+              "type": "string"
+            },
+            {
+              "id": "6360a9f1-bb7d-4df4-ba92-08206f1023ad",
+              "name": "email_source",
+              "value": "Apollo.io",
+              "type": "string"
+            },
+            {
+              "id": "7366f50d-8849-4935-babb-8d491d17c0d9",
+              "name": "verification_status",
+              "value": "valid",
+              "type": "string"
+            },
+            {
+              "id": "eceb3044-d00f-4bdf-b560-4cbcb9b91ea3",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "6528f7c7-090f-4156-832b-d9d377b739cb",
+              "name": "error_reason",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "28488dc2-ff09-48d5-9d5e-08111295834b",
+      "name": "Build Success Row (Apollo)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1344,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk",
+          "mode": "list",
+          "cachedResultName": "DATA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "6b325c24-5e55-452e-bcb5-52f6d1ccd0b3",
+      "name": "Update Sheet: Success (Apollo)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1120,
+        -224
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.instantly.ai/api/v1/lead/add",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_key\": \"REPLACE_INSTANTLY_API_KEY\",\n  \"campaign_id\": \"REPLACE_INSTANTLY_CAMPAIGN_ID\",\n  \"skip_if_in_workspace\": true,\n  \"leads\": [{\n    \"email\": \"{{ $json.contact_email }}\",\n    \"first_name\": \"{{ $json.contact_first_name }}\",\n    \"last_name\": \"{{ $json.contact_last_name }}\",\n    \"company_name\": \"{{ $json.company_name }}\",\n    \"website\": \"{{ $json.company_domain }}\",\n    \"personalization\": \"Hi {{ $json.contact_first_name }}, noticed {{ $json.company_name }} is in the fencing space\",\n    \"custom_variables\": {\n      \"title\": \"{{ $json.contact_title }}\",\n      \"persona_tier\": \"{{ $json.persona_tier }}\",\n      \"persona_label\": \"{{ $json.persona_label }}\",\n      \"linkedin\": \"{{ $json.contact_linkedin }}\",\n      \"org_headcount\": \"{{ $json.org_headcount }}\",\n      \"org_location\": \"{{ $json.org_location }}\"\n    }\n  }]\n}",
+        "options": {}
+      },
+      "id": "610907df-e30b-4fa3-b53a-02fce3ff8605",
+      "name": "Instantly.ai: Add Lead (Apollo)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "36b19f91-cb12-47d2-81a4-e73a22e0d686",
+              "name": "company_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "fe2c9b97-e7a8-4a86-a662-0e8ff6aaa43d",
+              "name": "company_domain",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.company_domain }}",
+              "type": "string"
+            },
+            {
+              "id": "6e4061ae-e424-44a0-b42d-31376357a026",
+              "name": "status",
+              "value": "needs_review",
+              "type": "string"
+            },
+            {
+              "id": "1e2ac260-af83-4017-a230-3bde246f1b07",
+              "name": "contact_email",
+              "value": "={{ $('Apollo: Enrich Contact').item.json.person.email }}",
+              "type": "string"
+            },
+            {
+              "id": "17695710-00fa-450c-856f-9146786d6dee",
+              "name": "email_source",
+              "value": "Apollo.io",
+              "type": "string"
+            },
+            {
+              "id": "613db5f9-02c7-4228-b299-7ea8f85c1b60",
+              "name": "verification_status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            },
+            {
+              "id": "d85dcd2b-e747-4177-9ddf-c47607cbebac",
+              "name": "error_reason",
+              "value": "Email found but ZeroBounce confidence <95% — verify manually before sending",
+              "type": "string"
+            },
+            {
+              "id": "93ddea48-4bd6-4eac-93e6-e3062cf49625",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c964cb22-a0ef-45b6-bd0e-90103ee6d05d",
+      "name": "Build Needs-Review Row (Apollo)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1344,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk",
+          "mode": "list",
+          "cachedResultName": "DATA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "cada211a-cf23-431f-83fe-8f3b276dc088",
+      "name": "Update Sheet: Needs Review (Apollo)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1120,
+        -32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hunter.io/v2/email-finder?domain={{ $('Pick Best 1-2 Contacts').item.json.company_domain }}&first_name={{ $('Pick Best 1-2 Contacts').item.json.contact_first_name }}&last_name={{ $('Pick Best 1-2 Contacts').item.json.contact_last_name }}&api_key=REPLACE_HUNTER_API_KEY",
+        "options": {}
+      },
+      "id": "37e28078-4b81-4e6f-b7ea-2b402e96c2f0",
+      "name": "Hunter.io: Find Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1792,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.zerobounce.net/v2/validate?api_key=REPLACE_ZEROBOUNCE_API_KEY&email={{ encodeURIComponent($json.data.email) }}&ip_address=",
+        "options": {}
+      },
+      "id": "a8e871e0-accc-4f05-bb1c-09334baa9212",
+      "name": "ZeroBounce: Verify Hunter Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1568,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6868f086-e714-4087-8940-a3b87454c5c2",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "valid",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bcb1b04e-716a-42b4-bf5c-d6fcc817158d",
+      "name": "IF: Hunter Email ≥95% Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1344,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "346f4a34-1d5a-40a1-8b0f-fa0fcbcd65d8",
+              "name": "company_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "9833a09a-dd75-4360-a8c9-78923631959f",
+              "name": "company_domain",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.company_domain }}",
+              "type": "string"
+            },
+            {
+              "id": "2ecf5424-2ade-47ab-a6be-113332202ba1",
+              "name": "status",
+              "value": "done",
+              "type": "string"
+            },
+            {
+              "id": "b8824968-eb5d-4c18-9000-968069098f53",
+              "name": "apollo_org_id",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.apollo_org_id }}",
+              "type": "string"
+            },
+            {
+              "id": "45ed958e-ea41-4806-9038-d07e4474b4f6",
+              "name": "org_industry",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.org_industry }}",
+              "type": "string"
+            },
+            {
+              "id": "cbaf6475-3ff7-410d-9a76-e07d26a4cb17",
+              "name": "org_headcount",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.org_headcount }}",
+              "type": "string"
+            },
+            {
+              "id": "a44d76d1-477d-432f-851a-ccf2d6e7eee7",
+              "name": "org_location",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.org_location }}",
+              "type": "string"
+            },
+            {
+              "id": "7694e37f-e44f-44d2-966f-67cea7279a65",
+              "name": "contact_first_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact_first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "96a2012b-314a-4cb2-b29c-2fc76bdd9edf",
+              "name": "contact_last_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact_last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "e6e708e7-be32-42c0-9e6d-f59af280bbf6",
+              "name": "contact_title",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact_title }}",
+              "type": "string"
+            },
+            {
+              "id": "0ca19c02-3dc3-4aa4-b1c2-4f7f99740a1f",
+              "name": "contact_linkedin",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact_linkedin }}",
+              "type": "string"
+            },
+            {
+              "id": "5b63e436-a9f6-4e73-b32a-63e724fe9041",
+              "name": "contact_email",
+              "value": "={{ $('Hunter.io: Find Email').item.json.data.email }}",
+              "type": "string"
+            },
+            {
+              "id": "5b90627a-575d-49fd-a44f-13a9d508a44f",
+              "name": "contact_email_status",
+              "value": "hunter_verified",
+              "type": "string"
+            },
+            {
+              "id": "8bff06c6-6476-494a-9a1c-31e523516bc6",
+              "name": "persona_tier",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.persona_tier }}",
+              "type": "number"
+            },
+            {
+              "id": "91b41f35-13da-4387-b02e-05db1ef6f64b",
+              "name": "persona_label",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.persona_label }}",
+              "type": "string"
+            },
+            {
+              "id": "61abf9b8-4c5e-4c33-8283-e4da8a52a954",
+              "name": "contact2_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact2_first_name + ' ' + $('Pick Best 1-2 Contacts').item.json.contact2_last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "bbe0f766-5f47-4b74-8762-b8573b9fd764",
+              "name": "contact2_title",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.contact2_title }}",
+              "type": "string"
+            },
+            {
+              "id": "b911d324-23b1-45ae-b548-12f5d49cbd54",
+              "name": "email_source",
+              "value": "Hunter.io",
+              "type": "string"
+            },
+            {
+              "id": "495bbe72-f0f6-495a-83b6-82f7f291eb41",
+              "name": "verification_status",
+              "value": "valid",
+              "type": "string"
+            },
+            {
+              "id": "c4f76f99-db3d-4f41-b2a6-45dca8103942",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "149edfdb-0e7e-40bb-b42c-e2591bcbf00f",
+              "name": "error_reason",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c477475e-735b-4b55-aaf5-f008d8a9c19c",
+      "name": "Build Success Row (Hunter)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk",
+          "mode": "list",
+          "cachedResultName": "DATA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_domain",
+              "displayName": "company_domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apollo_org_id",
+              "displayName": "apollo_org_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_industry",
+              "displayName": "org_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_headcount",
+              "displayName": "org_headcount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_location",
+              "displayName": "org_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_first_name",
+              "displayName": "contact_first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_last_name",
+              "displayName": "contact_last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_title",
+              "displayName": "contact_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_seniority",
+              "displayName": "contact_seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_linkedin",
+              "displayName": "contact_linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email_status",
+              "displayName": "contact_email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_phone",
+              "displayName": "contact_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_tier",
+              "displayName": "persona_tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_label",
+              "displayName": "persona_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enriched_at",
+              "displayName": "enriched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9d3c0c98-1998-4c67-91cd-67529ef841dd",
+      "name": "Update Sheet: Success (Hunter)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -896,
+        160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.instantly.ai/api/v1/lead/add",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_key\": \"REPLACE_INSTANTLY_API_KEY\",\n  \"campaign_id\": \"REPLACE_INSTANTLY_CAMPAIGN_ID\",\n  \"skip_if_in_workspace\": true,\n  \"leads\": [{\n    \"email\": \"{{ $json.contact_email }}\",\n    \"first_name\": \"{{ $json.contact_first_name }}\",\n    \"last_name\": \"{{ $json.contact_last_name }}\",\n    \"company_name\": \"{{ $json.company_name }}\",\n    \"website\": \"{{ $json.company_domain }}\",\n    \"custom_variables\": {\n      \"title\": \"{{ $json.contact_title }}\",\n      \"persona_tier\": \"{{ $json.persona_tier }}\",\n      \"persona_label\": \"{{ $json.persona_label }}\"\n    }\n  }]\n}",
+        "options": {}
+      },
+      "id": "34e665d5-ea3a-4330-a2d6-0e2cb8f07c43",
+      "name": "Instantly.ai: Add Lead (Hunter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -224,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "38f15c3c-4624-4ef6-baa0-aa3114d8c48e",
+              "name": "company_name",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "9a5099a3-6321-4441-93b6-dfeb05b58137",
+              "name": "company_domain",
+              "value": "={{ $('Pick Best 1-2 Contacts').item.json.company_domain }}",
+              "type": "string"
+            },
+            {
+              "id": "0d06eb2b-94b6-4349-b7bc-c71ba9257c64",
+              "name": "status",
+              "value": "needs_review",
+              "type": "string"
+            },
+            {
+              "id": "2f46c45d-3b25-4f67-b4e2-3772876d7ffe",
+              "name": "contact_email",
+              "value": "={{ $('Hunter.io: Find Email').item.json.data.email || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "5c381689-f6d8-425b-b9a6-ae3209eabe62",
+              "name": "email_source",
+              "value": "Hunter.io",
+              "type": "string"
+            },
+            {
+              "id": "7a096a37-9bfc-4018-9f13-d53028c1b3c2",
+              "name": "verification_status",
+              "value": "={{ $json.status || 'unverified' }}",
+              "type": "string"
+            },
+            {
+              "id": "a6e20776-6a15-4d75-80e9-849636ba6952",
+              "name": "error_reason",
+              "value": "Hunter email found but ZeroBounce confidence <95% — verify manually",
+              "type": "string"
+            },
+            {
+              "id": "02461f25-e2d5-4dc0-b8d7-e676a02b7045",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ec63c296-119a-471d-9ffe-e6505bb85b1f",
+      "name": "Build Needs-Review Row (Hunter)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk",
+          "mode": "list",
+          "cachedResultName": "DATA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_domain",
+              "displayName": "company_domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apollo_org_id",
+              "displayName": "apollo_org_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_industry",
+              "displayName": "org_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_headcount",
+              "displayName": "org_headcount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_location",
+              "displayName": "org_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_first_name",
+              "displayName": "contact_first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_last_name",
+              "displayName": "contact_last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_title",
+              "displayName": "contact_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_seniority",
+              "displayName": "contact_seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_linkedin",
+              "displayName": "contact_linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email_status",
+              "displayName": "contact_email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_phone",
+              "displayName": "contact_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_tier",
+              "displayName": "persona_tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_label",
+              "displayName": "persona_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enriched_at",
+              "displayName": "enriched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f0964702-8be2-4320-918c-fce14cacf164",
+      "name": "Update Sheet: Needs Review (Hunter)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -896,
+        352
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "REPLACE_PHANTOMBUSTER_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"id\": \"REPLACE_PHANTOMBUSTER_AGENT_ID\",\n  \"argument\": {\n    \"linkedInUrls\": [\"{{ $json.org_linkedin }}\"],\n    \"numberOfProfiles\": 5,\n    \"sessionCookie\": \"REPLACE_LI_AT_COOKIE\"\n  }\n}",
+        "options": {}
+      },
+      "id": "7aac8cd7-f975-4561-81e0-78a2e52784e9",
+      "name": "Phantombuster: Launch LinkedIn Scrape",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2240,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 45
+      },
+      "id": "c598ace7-41ec-472e-961a-a091b4822dd2",
+      "name": "Wait: Phantombuster Processing",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -2016,
+        640
+      ],
+      "webhookId": "1eb84133-6978-411e-9e9a-545be9b82dd6"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.phantombuster.com/api/v2/agents/fetch-output?id=REPLACE_PHANTOMBUSTER_AGENT_ID",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "REPLACE_PHANTOMBUSTER_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9058d78f-ef21-430a-90a3-7d7ea31562c7",
+      "name": "Phantombuster: Fetch Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1792,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Phantombuster returns JSON output with scraped profiles\nconst raw = $input.item.json.output || '[]';\nlet profiles = [];\ntry { profiles = JSON.parse(raw); } catch(e) {}\n\nconst row = $('Read Pending Rows').item.json;\nconst pick = $('Pick Best 1-2 Contacts').item.json;\n\nif (!profiles.length || !profiles[0]) {\n  return { json: { found: false, company_name: row.company_name, company_domain: row.company_domain,\n    error_reason: 'Phantombuster returned no LinkedIn profiles for this company' }};\n}\n\n// Grab first valid profile that has a name\nconst p = profiles.find(x => x.firstName || x.first_name) || profiles[0];\nreturn { json: {\n  found:              !!(p.email || p.mailAddress),\n  company_name:       row.company_name,\n  company_domain:     row.company_domain,\n  apollo_org_id:      pick.apollo_org_id,\n  org_industry:       pick.org_industry,\n  org_headcount:      pick.org_headcount,\n  org_location:       pick.org_location,\n  contact_first_name: p.firstName || p.first_name || '',\n  contact_last_name:  p.lastName  || p.last_name  || '',\n  contact_title:      p.title     || p.jobTitle   || '',\n  contact_linkedin:   p.profileUrl || '',\n  contact_email:      p.email || p.mailAddress || '',\n  persona_tier:       pick.persona_tier,\n  persona_label:      pick.persona_label\n}};"
+      },
+      "id": "e180468e-b9ab-44ff-90ee-df8607da7f16",
+      "name": "IF: LinkedIn Contact Found?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1568,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.zerobounce.net/v2/validate?api_key=REPLACE_ZEROBOUNCE_API_KEY&email={{ encodeURIComponent($json.contact_email) }}&ip_address=",
+        "options": {}
+      },
+      "id": "681ccb78-9418-4ea5-9208-7a78470a1adb",
+      "name": "ZeroBounce: Verify LinkedIn Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1344,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9b8b6393-14af-4d85-99fb-9a70e37c21e3",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "valid",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2603a4eb-8cca-4c39-9c9a-dfdbc5541996",
+      "name": "IF: LinkedIn Email ≥95% Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1120,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1d11649d-75f1-4917-8552-eb4d2d4b2c92",
+              "name": "company_name",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "08bd52ab-8f1a-49fe-903d-f917d7b7d958",
+              "name": "company_domain",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.company_domain }}",
+              "type": "string"
+            },
+            {
+              "id": "a2c41d9d-4d63-43d8-b22b-385c5d88fae1",
+              "name": "status",
+              "value": "done",
+              "type": "string"
+            },
+            {
+              "id": "a2964021-1e5c-4476-a8d0-bb38015c82df",
+              "name": "apollo_org_id",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.apollo_org_id }}",
+              "type": "string"
+            },
+            {
+              "id": "990e5c0e-4ce8-4e7b-8504-6939b2157321",
+              "name": "org_industry",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.org_industry }}",
+              "type": "string"
+            },
+            {
+              "id": "12bee940-939e-4f34-9cda-fb5f81188a17",
+              "name": "org_headcount",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.org_headcount }}",
+              "type": "string"
+            },
+            {
+              "id": "9114feeb-5cf1-4c2e-b56b-15621a58742a",
+              "name": "org_location",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.org_location }}",
+              "type": "string"
+            },
+            {
+              "id": "5438851f-d832-4917-94d1-e2ad651661d4",
+              "name": "contact_first_name",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.contact_first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "0b184f20-f8e6-493f-87c4-b90d1b2e9572",
+              "name": "contact_last_name",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.contact_last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "76bd6bf0-3475-41f7-bf31-b486c2e9f4d7",
+              "name": "contact_title",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.contact_title }}",
+              "type": "string"
+            },
+            {
+              "id": "0ce54163-9418-4f06-8ded-9aecb38d6ff2",
+              "name": "contact_linkedin",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.contact_linkedin }}",
+              "type": "string"
+            },
+            {
+              "id": "a7dcc5b8-a8d2-4deb-8e16-5dcc803cf963",
+              "name": "contact_email",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.contact_email }}",
+              "type": "string"
+            },
+            {
+              "id": "5d65c51a-a383-4076-9edd-6dabcb7ee3d6",
+              "name": "contact_email_status",
+              "value": "phantombuster_scraped",
+              "type": "string"
+            },
+            {
+              "id": "adb1031d-7c51-44b6-af59-c1cf70facc44",
+              "name": "persona_tier",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.persona_tier }}",
+              "type": "number"
+            },
+            {
+              "id": "66df3374-8354-418d-8a6a-4557a40a6e5d",
+              "name": "persona_label",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.persona_label }}",
+              "type": "string"
+            },
+            {
+              "id": "b87d67a2-c77e-48d7-ad2b-fb5ce80d1361",
+              "name": "email_source",
+              "value": "Phantombuster / LinkedIn",
+              "type": "string"
+            },
+            {
+              "id": "822724cb-2c12-472b-a424-c10c1a1a80a0",
+              "name": "verification_status",
+              "value": "valid",
+              "type": "string"
+            },
+            {
+              "id": "b0a10591-a497-44aa-b7bd-096eb5db4f47",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "4d278c4d-5272-4924-9298-df54160333b5",
+              "name": "error_reason",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1c7a1d4-d28c-4dd2-b06e-ee32c1ff3ab1",
+      "name": "Build Success Row (LinkedIn)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -896,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk",
+          "mode": "list",
+          "cachedResultName": "DATA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_domain",
+              "displayName": "company_domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apollo_org_id",
+              "displayName": "apollo_org_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_industry",
+              "displayName": "org_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_headcount",
+              "displayName": "org_headcount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_location",
+              "displayName": "org_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_first_name",
+              "displayName": "contact_first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_last_name",
+              "displayName": "contact_last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_title",
+              "displayName": "contact_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_seniority",
+              "displayName": "contact_seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_linkedin",
+              "displayName": "contact_linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email_status",
+              "displayName": "contact_email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_phone",
+              "displayName": "contact_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_tier",
+              "displayName": "persona_tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_label",
+              "displayName": "persona_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enriched_at",
+              "displayName": "enriched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3a9a4265-bcd3-4364-a2e6-08e273ea5808",
+      "name": "Update Sheet: Success (LinkedIn)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -672,
+        544
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.instantly.ai/api/v1/lead/add",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_key\": \"REPLACE_INSTANTLY_API_KEY\",\n  \"campaign_id\": \"REPLACE_INSTANTLY_CAMPAIGN_ID\",\n  \"skip_if_in_workspace\": true,\n  \"leads\": [{\n    \"email\": \"{{ $json.contact_email }}\",\n    \"first_name\": \"{{ $json.contact_first_name }}\",\n    \"last_name\": \"{{ $json.contact_last_name }}\",\n    \"company_name\": \"{{ $json.company_name }}\",\n    \"website\": \"{{ $json.company_domain }}\",\n    \"custom_variables\": {\n      \"title\": \"{{ $json.contact_title }}\",\n      \"persona_tier\": \"{{ $json.persona_tier }}\"\n    }\n  }]\n}",
+        "options": {}
+      },
+      "id": "65c783b4-96c5-49fc-9f08-14a630284652",
+      "name": "Instantly.ai: Add Lead (LinkedIn)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3cc42d03-8cb8-4bbd-9f0e-92eee07245f4",
+              "name": "company_name",
+              "value": "={{ $('Read Pending Rows').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "7a81848c-20ea-41fa-b645-e1c0cf00e30b",
+              "name": "company_domain",
+              "value": "={{ $('Read Pending Rows').item.json.company_domain }}",
+              "type": "string"
+            },
+            {
+              "id": "40fc003b-5b68-48f1-9773-5f63b7543bb4",
+              "name": "status",
+              "value": "no_match",
+              "type": "string"
+            },
+            {
+              "id": "1dcb6b15-5fbb-45f8-b97c-cd0a1142748c",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "ca2abaee-3770-484c-abea-4cdd77efd2b1",
+              "name": "error_reason",
+              "value": "Company domain not found in Apollo — try parent domain or check spelling",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "020169a9-aed6-4d2e-a9c1-5878499f831f",
+      "name": "Build No-Org Row",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2912,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk",
+          "mode": "list",
+          "cachedResultName": "DATA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_domain",
+              "displayName": "company_domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apollo_org_id",
+              "displayName": "apollo_org_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_industry",
+              "displayName": "org_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_headcount",
+              "displayName": "org_headcount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_location",
+              "displayName": "org_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_first_name",
+              "displayName": "contact_first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_last_name",
+              "displayName": "contact_last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_title",
+              "displayName": "contact_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_seniority",
+              "displayName": "contact_seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_linkedin",
+              "displayName": "contact_linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email_status",
+              "displayName": "contact_email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_phone",
+              "displayName": "contact_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_tier",
+              "displayName": "persona_tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_label",
+              "displayName": "persona_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enriched_at",
+              "displayName": "enriched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "5a999e3d-1a8b-40e2-9d77-78e46fd172ef",
+      "name": "Update Sheet: No Org",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2688,
+        448
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "26719305-0910-41c0-b946-ce1c7982340a",
+              "name": "company_name",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "ac6a27d1-ba80-41a6-b522-104a875a0d61",
+              "name": "company_domain",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.company_domain }}",
+              "type": "string"
+            },
+            {
+              "id": "81c62a69-2ca2-44f4-8645-47991bb19b93",
+              "name": "status",
+              "value": "needs_review",
+              "type": "string"
+            },
+            {
+              "id": "ce8cb631-beac-4276-833b-016781029a65",
+              "name": "contact_email",
+              "value": "={{ $('IF: LinkedIn Contact Found?').item.json.contact_email }}",
+              "type": "string"
+            },
+            {
+              "id": "4a4b56f3-2e0b-4725-b436-48bd72d73256",
+              "name": "email_source",
+              "value": "Phantombuster / LinkedIn",
+              "type": "string"
+            },
+            {
+              "id": "35391a5c-478f-437d-9b28-1cc1cca87950",
+              "name": "verification_status",
+              "value": "={{ $json.status || 'unverified' }}",
+              "type": "string"
+            },
+            {
+              "id": "f98abf1f-3074-4f3a-b45f-e6579c01e85d",
+              "name": "error_reason",
+              "value": "LinkedIn email found but ZeroBounce confidence <95% — verify manually",
+              "type": "string"
+            },
+            {
+              "id": "c81b7afe-4eec-4cbc-9705-d8f9101ce6c5",
+              "name": "enriched_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2511b018-eace-424a-a269-f65297473264",
+      "name": "Build Needs-Review Row (LinkedIn)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -896,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk",
+          "mode": "list",
+          "cachedResultName": "DATA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HYT3k7M_0oHEV-TcBlnDMpbRa-qBfTkjYhJmiaXDhAk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_domain",
+              "displayName": "company_domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apollo_org_id",
+              "displayName": "apollo_org_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_industry",
+              "displayName": "org_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_headcount",
+              "displayName": "org_headcount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "org_location",
+              "displayName": "org_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_first_name",
+              "displayName": "contact_first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_last_name",
+              "displayName": "contact_last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_title",
+              "displayName": "contact_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_seniority",
+              "displayName": "contact_seniority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_linkedin",
+              "displayName": "contact_linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email_status",
+              "displayName": "contact_email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_phone",
+              "displayName": "contact_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_tier",
+              "displayName": "persona_tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "persona_label",
+              "displayName": "persona_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enriched_at",
+              "displayName": "enriched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "cd4ab7b3-a7d5-485c-a6e3-4e23c4a73139",
+      "name": "Update Sheet: Needs Review (LinkedIn)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -672,
+        736
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7ejovIJgKtjwl8Nu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/companies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"name\": \"{{ $json.company_name }}\",\n    \"domain\": \"{{ $json.company_domain }}\",\n    \"industry\": \"{{ $json.org_industry }}\",\n    \"numberofemployees\": \"{{ $json.org_headcount }}\",\n    \"city\": \"{{ $json.org_location }}\",\n    \"linkedin_company_page\": \"{{ $json.org_linkedin || '' }}\",\n    \"lifecyclestage\": \"lead\",\n    \"hs_lead_status\": \"NEW\"\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "f26a5c3d-fe24-45d3-a1b4-e2d6fbd48066",
+      "name": "HubSpot: Upsert Company (Apollo)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -896,
+        -224
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZYhcAyWaGveoc92V",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"email\": \"{{ $('Update Sheet: Success (Apollo)').item.json.contact_email || $('Update Sheet: Success (Hunter)').item.json.contact_email || $('Update Sheet: Success (LinkedIn)').item.json.contact_email }}\",\n    \"firstname\": \"{{ $json.contact_first_name }}\",\n    \"lastname\": \"{{ $json.contact_last_name }}\",\n    \"jobtitle\": \"{{ $json.contact_title }}\",\n    \"company\": \"{{ $json.company_name }}\",\n    \"website\": \"{{ $json.company_domain }}\",\n    \"phone\": \"{{ $json.contact_phone || '' }}\",\n    \"linkedin_url\": \"{{ $json.contact_linkedin }}\",\n    \"persona_tier\": \"{{ $json.persona_tier }}\",\n    \"persona_label\": \"{{ $json.persona_label }}\",\n    \"email_source\": \"{{ $json.email_source }}\",\n    \"lead_source\": \"n8n LeadForge Pipeline\",\n    \"hs_lead_status\": \"NEW\",\n    \"lifecyclestage\": \"lead\",\n    \"associatedcompanyid\": \"{{ $json.id }}\"\n  },\n  \"associations\": [{\n    \"to\": {\"id\": \"{{ $json.id }}\"},\n    \"types\": [{\"associationCategory\": \"HUBSPOT_DEFINED\", \"associationTypeId\": 279}]\n  }]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "0a6355f0-614c-4a53-946a-bcae0e3286b0",
+      "name": "HubSpot: Upsert Contact (Apollo)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -672,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/companies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"name\": \"{{ $json.company_name }}\",\n    \"domain\": \"{{ $json.company_domain }}\",\n    \"industry\": \"{{ $json.org_industry }}\",\n    \"numberofemployees\": \"{{ $json.org_headcount }}\",\n    \"city\": \"{{ $json.org_location }}\",\n    \"linkedin_company_page\": \"{{ $json.org_linkedin || '' }}\",\n    \"lifecyclestage\": \"lead\",\n    \"hs_lead_status\": \"NEW\"\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "de390289-7fe9-498d-9268-3d31a90e7a74",
+      "name": "HubSpot: Upsert Company (Hunter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -672,
+        160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZYhcAyWaGveoc92V",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"email\": \"{{ $('Update Sheet: Success (Apollo)').item.json.contact_email || $('Update Sheet: Success (Hunter)').item.json.contact_email || $('Update Sheet: Success (LinkedIn)').item.json.contact_email }}\",\n    \"firstname\": \"{{ $json.contact_first_name }}\",\n    \"lastname\": \"{{ $json.contact_last_name }}\",\n    \"jobtitle\": \"{{ $json.contact_title }}\",\n    \"company\": \"{{ $json.company_name }}\",\n    \"website\": \"{{ $json.company_domain }}\",\n    \"phone\": \"{{ $json.contact_phone || '' }}\",\n    \"linkedin_url\": \"{{ $json.contact_linkedin }}\",\n    \"persona_tier\": \"{{ $json.persona_tier }}\",\n    \"persona_label\": \"{{ $json.persona_label }}\",\n    \"email_source\": \"{{ $json.email_source }}\",\n    \"lead_source\": \"n8n LeadForge Pipeline\",\n    \"hs_lead_status\": \"NEW\",\n    \"lifecyclestage\": \"lead\",\n    \"associatedcompanyid\": \"{{ $json.id }}\"\n  },\n  \"associations\": [{\n    \"to\": {\"id\": \"{{ $json.id }}\"},\n    \"types\": [{\"associationCategory\": \"HUBSPOT_DEFINED\", \"associationTypeId\": 279}]\n  }]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "888d5085-e227-4579-9c38-aa77ec040a7f",
+      "name": "HubSpot: Upsert Contact (Hunter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZYhcAyWaGveoc92V",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/companies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"name\": \"{{ $json.company_name }}\",\n    \"domain\": \"{{ $json.company_domain }}\",\n    \"industry\": \"{{ $json.org_industry }}\",\n    \"numberofemployees\": \"{{ $json.org_headcount }}\",\n    \"city\": \"{{ $json.org_location }}\",\n    \"linkedin_company_page\": \"{{ $json.org_linkedin || '' }}\",\n    \"lifecyclestage\": \"lead\",\n    \"hs_lead_status\": \"NEW\"\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "a055c1e4-3e44-4136-9baf-0f040a6b7dcc",
+      "name": "HubSpot: Upsert Company (LinkedIn)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        544
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZYhcAyWaGveoc92V",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"email\": \"{{ $('Update Sheet: Success (Apollo)').item.json.contact_email || $('Update Sheet: Success (Hunter)').item.json.contact_email || $('Update Sheet: Success (LinkedIn)').item.json.contact_email }}\",\n    \"firstname\": \"{{ $json.contact_first_name }}\",\n    \"lastname\": \"{{ $json.contact_last_name }}\",\n    \"jobtitle\": \"{{ $json.contact_title }}\",\n    \"company\": \"{{ $json.company_name }}\",\n    \"website\": \"{{ $json.company_domain }}\",\n    \"phone\": \"{{ $json.contact_phone || '' }}\",\n    \"linkedin_url\": \"{{ $json.contact_linkedin }}\",\n    \"persona_tier\": \"{{ $json.persona_tier }}\",\n    \"persona_label\": \"{{ $json.persona_label }}\",\n    \"email_source\": \"{{ $json.email_source }}\",\n    \"lead_source\": \"n8n LeadForge Pipeline\",\n    \"hs_lead_status\": \"NEW\",\n    \"lifecyclestage\": \"lead\",\n    \"associatedcompanyid\": \"{{ $json.id }}\"\n  },\n  \"associations\": [{\n    \"to\": {\"id\": \"{{ $json.id }}\"},\n    \"types\": [{\"associationCategory\": \"HUBSPOT_DEFINED\", \"associationTypeId\": 279}]\n  }]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "0e32f7fb-d245-4010-8394-c36cb03d9011",
+      "name": "HubSpot: Upsert Contact (LinkedIn)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -224,
+        544
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZYhcAyWaGveoc92V",
+          "name": "Header Auth account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Form: Prospect Search": {
+      "main": [
+        [
+          {
+            "node": "Apollo: Discover Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apollo: Discover Companies": {
+      "main": [
+        [
+          {
+            "node": "Extract Company Domains",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Company Domains": {
+      "main": [
+        [
+          {
+            "node": "Append Companies to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Companies to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Read Pending Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Pending Rows": {
+      "main": [
+        [
+          {
+            "node": "Apollo: Find Organization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apollo: Find Organization": {
+      "main": [
+        [
+          {
+            "node": "IF: Org Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Org Found?": {
+      "main": [
+        [
+          {
+            "node": "Apollo: Search People",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build No-Org Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apollo: Search People": {
+      "main": [
+        [
+          {
+            "node": "Pick Best 1-2 Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Best 1-2 Contacts": {
+      "main": [
+        [
+          {
+            "node": "IF: Contact Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Contact Found?": {
+      "main": [
+        [
+          {
+            "node": "Apollo: Enrich Contact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Phantombuster: Launch LinkedIn Scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apollo: Enrich Contact": {
+      "main": [
+        [
+          {
+            "node": "IF: Apollo Email Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Apollo Email Found?": {
+      "main": [
+        [
+          {
+            "node": "ZeroBounce: Verify Apollo Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hunter.io: Find Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ZeroBounce: Verify Apollo Email": {
+      "main": [
+        [
+          {
+            "node": "IF: Apollo Email ≥95% Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Apollo Email ≥95% Valid?": {
+      "main": [
+        [
+          {
+            "node": "Build Success Row (Apollo)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Needs-Review Row (Apollo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success Row (Apollo)": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet: Success (Apollo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheet: Success (Apollo)": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: Upsert Company (Apollo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Needs-Review Row (Apollo)": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet: Needs Review (Apollo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter.io: Find Email": {
+      "main": [
+        [
+          {
+            "node": "ZeroBounce: Verify Hunter Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ZeroBounce: Verify Hunter Email": {
+      "main": [
+        [
+          {
+            "node": "IF: Hunter Email ≥95% Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Hunter Email ≥95% Valid?": {
+      "main": [
+        [
+          {
+            "node": "Build Success Row (Hunter)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Needs-Review Row (Hunter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success Row (Hunter)": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet: Success (Hunter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheet: Success (Hunter)": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: Upsert Company (Hunter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Needs-Review Row (Hunter)": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet: Needs Review (Hunter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phantombuster: Launch LinkedIn Scrape": {
+      "main": [
+        [
+          {
+            "node": "Wait: Phantombuster Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait: Phantombuster Processing": {
+      "main": [
+        [
+          {
+            "node": "Phantombuster: Fetch Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phantombuster: Fetch Results": {
+      "main": [
+        [
+          {
+            "node": "IF: LinkedIn Contact Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: LinkedIn Contact Found?": {
+      "main": [
+        [
+          {
+            "node": "ZeroBounce: Verify LinkedIn Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ZeroBounce: Verify LinkedIn Email": {
+      "main": [
+        [
+          {
+            "node": "IF: LinkedIn Email ≥95% Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: LinkedIn Email ≥95% Valid?": {
+      "main": [
+        [
+          {
+            "node": "Build Success Row (LinkedIn)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Needs-Review Row (LinkedIn)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success Row (LinkedIn)": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet: Success (LinkedIn)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheet: Success (LinkedIn)": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: Upsert Company (LinkedIn)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Needs-Review Row (LinkedIn)": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet: Needs Review (LinkedIn)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build No-Org Row": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet: No Org",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: Upsert Company (Apollo)": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: Upsert Contact (Apollo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: Upsert Contact (Apollo)": {
+      "main": [
+        [
+          {
+            "node": "Instantly.ai: Add Lead (Apollo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: Upsert Company (Hunter)": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: Upsert Contact (Hunter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: Upsert Contact (Hunter)": {
+      "main": [
+        [
+          {
+            "node": "Instantly.ai: Add Lead (Hunter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: Upsert Company (LinkedIn)": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: Upsert Contact (LinkedIn)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: Upsert Contact (LinkedIn)": {
+      "main": [
+        [
+          {
+            "node": "Instantly.ai: Add Lead (LinkedIn)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3d2bd413-3137-498e-a936-baed2ad71991",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0ccffdea81e925b3303a9cbb5fddc7b64cd3922eae110f482bfcc725e8e35ee3"
+  },
+  "id": "PhRJwvetb8a1lC2i",
+  "tags": []
+}
